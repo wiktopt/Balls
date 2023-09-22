@@ -95,44 +95,40 @@ int main() {
 		float t = clock.restart().asSeconds();
 		Event event;
 		while (window.pollEvent(event)) { // Events
-			if (event.type == Event::MouseButtonPressed && player.points < FullPoints)
-				if (event.mouseButton.button == Mouse::Left)
-					lMouse = true;
+			if (event.type == Event::MouseButtonPressed && player.points < FullPoints && player.points >= 0)
+				lMouse = event.mouseButton.button == Mouse::Left;
 
-			if (event.type == Event::MouseButtonReleased && player.points < FullPoints)
-				if (event.mouseButton.button == Mouse::Left && !player.isMoving()) {
+			if (event.type == Event::MouseButtonReleased && player.points < FullPoints && player.points >= 0)
+				if (event.mouseButton.button == Mouse::Left ) {
 					lMouse = false;
-					Vector2f vt = player.getPosition() - ((Vector2f)Mouse::getPosition(window));
-					player.v = 8.f * Vector2f(vt.x, vt.y); // Setting Player Speed Using Drawed Line
+					if (!player.isMoving()) {
+						player.v = 8.f * (player.getPosition() - ((Vector2f)Mouse::getPosition(window))); // Setting Player Speed Using Drawed Line
 
-					pointsGain = player.points; // Setting Starting Amount of Points
+						pointsGain = player.points; // Setting Starting Amount of Points
+					}
 				}
 
-			//if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
-					//window.close();
-
-			if (event.type == Event::Closed || player.points < 0 || (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape))
+			if (event.type == Event::Closed || (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape))
 				window.close();
 		}
-
-		if (player.points < FullPoints) {
+		if (player.points < FullPoints && player.points >= 0) {
 			if (player.isMoving()) { // When Player is in Motion
 				for (int i = 0; i < k; i++) //Balls Collision
 					player.ballBounce(balls[i], t);
 
-				player.move(t); // Motion, Friction and Border Collision
+					player.move(t); // Motion, Friction and Border Collision
 
-				if (!player.isMoving()) { // When Player Stops Moving
-					pointsGain = player.points - pointsGain; // Setting pointsGain as dummy variable
+					if (!player.isMoving()) { // When Player Stops Moving
+						pointsGain = player.points - pointsGain; // Setting pointsGain as dummy variable
 
-					if (k < n && k >= 3) k += pointsGain / 5; // Setting Amount of Balls to Add
-					else if (k > n) k = n;
-					else k = 3;
+						if (k < n && k >= 3) k += pointsGain / 5; // Setting Amount of Balls to Add
+						else if (k > n) k = n;
+						else k = 3;
 
-					for (int i = 0; i < k; i++) // Balls Initialization
-						balls[i].init(rand() % 4, i, balls, player.shape);
+						for (int i = 0; i < k; i++) // Balls Initialization
+							balls[i].init(rand() % 4, i, balls, player.shape);
+					}
 				}
-			}
 
 			sprintf_s(s, "Points: %d", player.points);
 			text.setString(s);
@@ -142,12 +138,17 @@ int main() {
 			text.setPosition({ 600,450 });
 			text.setFillColor(Color::Green);
 		}
+		else if (player.points < 0) { // Losing Condition
+			text = Text("You Lose! - :(", font, 48);
+			text.setPosition({ 750,450 });
+			text.setFillColor(Color::Red);
+		}
 
 		// Drawing
 		window.clear(Color::Black);
 		for (int i = 0; i < k; i++)
 			window.draw(balls[i].shape);
-		if (lMouse) { // Line Between Player and Mouse
+		if (lMouse && !player.isMoving()) { // Line Between Player and Mouse
 			Vertex line[] = { Vertex((Vector2f)Mouse::getPosition(window)),Vertex(player.getPosition()) };
 			window.draw(line, 2, Lines);
 		}

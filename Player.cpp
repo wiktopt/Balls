@@ -1,16 +1,38 @@
 #include "Player.h"
+#include <math.h>
 using namespace sf;
 
-void Player::borderBounce(float t) {
+void Player::borderBounce(float& t) {
 	const Vector2f pos = getPosition();
 	const float r = shape.getRadius();
+	float c_time=0;
 
-	if (pos.x + v.x * t >= width - r || pos.x + v.x * t <= r) {
-		v.x = (a - 1) * v.x;
+	if (pos.x + v.x * t >= width - r) {
+		c_time = (-r - pos.x + width) / v.x;
+		shape.setPosition(shape.getPosition() + v * c_time);
+		t -= c_time;
+		v.x *= -1;
 		points--;
 	}
-	if (pos.y + v.y * t >= height - r || pos.y + v.y * t <= r) {
-		v.y = (a - 1) * v.y;
+	else if (pos.x + v.x * t <= r) {
+		c_time = (r - pos.x) / v.x;
+		shape.setPosition(shape.getPosition() + v * c_time);
+		t -= c_time;
+		v.x *= -1;
+		points--;
+	}
+	if (pos.y + v.y * t >= height - r) {
+		c_time = (-r - pos.y + height) / v.y;
+		shape.setPosition(shape.getPosition() + v * c_time);
+		t -= c_time;
+		v.y *= -1;
+		points--;
+	}
+	else if (pos.y + v.y * t <= r) {
+		c_time = (r - pos.y) / v.y;
+		shape.setPosition(shape.getPosition() + v * c_time);
+		t -= c_time;
+		v.y *= -1;
 		points--;
 	}
 }
@@ -40,35 +62,36 @@ bool Player::isMoving() {
 void Player::move(float t){
 	borderBounce(t);
 
-	v = Vector2f(v.x * (1 - 8 * a * t), v.y * (1 - 8 * a * t)); // Friction
+	v *= (1 - 8 * a * t); // Friction
 
-	shape.setPosition(shape.getPosition() + Vector2f(v.x * t, v.y * t)); // Setting Player Position
+	shape.setPosition(shape.getPosition() + v*t); // Setting Player Position
 }
 
-void Player::ballBounce(Ball& ball, float t)
-{
-	const float dx = getPosition().x - ball.getPosition().x + v.x * t, dy = getPosition().y - ball.getPosition().y + v.y * t;
+void Player::ballBounce(Ball& ball, float& t){
+	float dx = getPosition().x - ball.getPosition().x + v.x * t, dy = getPosition().y - ball.getPosition().y + v.y * t;
 	const float r = ball.shape.getRadius() + shape.getRadius();
 
 	if (r * r >= dx * dx + dy * dy) {
-		float fr = 1;
 		switch (ball.type) {
 		case 0: // Red
 			points -= 5;
-			fr = 1.5;
 			break;
 		case 1: // Yellow
 			points += 5;
-			fr = 2;
 			break;
 		case 2: // Blue
 			points++;
-			fr = 0;
 			break;
 		case 3: // White
-			fr = 1;
 			break;
 		}
+
+		dx = getPosition().x - ball.getPosition().x, dy = getPosition().y - ball.getPosition().y;
+		const float c_time = -(sqrtf(r * r * (v.x * v.x + v.y * v.y) - (v.x * dy - v.y * dx) * (v.x * dy - v.y * dx)) + v.x * dx + v.y * dy) / (v.x * v.x + v.y * v.y);
+		shape.setPosition(shape.getPosition() + v * c_time);
+		dx = getPosition().x - ball.getPosition().x, dy = getPosition().y - ball.getPosition().y;
+		t -= c_time;
+
 		const Vector2f vp = ((v.x * dx + v.y * dy) / (dx * dx + dy * dy)) * Vector2f(dx, dy); // Vector projection on the axis of the radius
 		v -= 2.f * vp; // v after bounce
 	}

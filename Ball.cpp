@@ -37,8 +37,8 @@ void Ball::init(int t, int k, Ball* balls, CircleShape& Player){
 		float dx, dy, d;
 
 		if (i == 0) { // Setting to Check with Player Position
-			dx = shape.getPosition().x - Player.getPosition().x;
-			dy = shape.getPosition().y - Player.getPosition().y;
+			dx = getPosition().x - Player.getPosition().x - Player.getRadius();
+			dy = getPosition().y - Player.getPosition().y - Player.getRadius();
 			d = shape.getRadius() + Player.getRadius();
 		}
 		else { // Setting to Check with Other Ball Position
@@ -49,7 +49,7 @@ void Ball::init(int t, int k, Ball* balls, CircleShape& Player){
 
 		if (d * d >= dx * dx + dy * dy) {
 			shape.setPosition(float(rand() % ((int)(width - 2 * r))), float(rand() % ((int)(height - 2 * r))));
-			i = 0;
+			i = -1;
 		}
 	}
 }
