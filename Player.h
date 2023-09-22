@@ -22,5 +22,5 @@ struct Player {
 	void init(float r, Color color, Vector2f pos);
 	bool isMoving();
 	void move(float t);
-	void ballBounce(Ball& ball, float t);
+	void ballBounce(Ball& ball, float& t);
 };

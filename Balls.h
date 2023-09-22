@@ -15,3 +15,4 @@ static const float a = 0.15f;
 static const float speedError = 24.f;
 static const int n = 20;
 static const int FullPoints = 50;
+static const int ticksPerFrame = 16;

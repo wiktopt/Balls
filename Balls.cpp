@@ -114,33 +114,36 @@ int main() {
 			if (event.type == Event::Closed || player.points < 0 || (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape))
 				window.close();
 		}
+		for (int i = 0; i < ticksPerFrame; i++) {
+			if (player.points < FullPoints) {
+				if (player.isMoving()) { // When Player is in Motion
+					float t_time = t / ticksPerFrame;
+					for (int i = 0; i < k; i++) //Balls Collision
+						player.ballBounce(balls[i], t_time);
 
-		if (player.points < FullPoints) {
-			if (player.isMoving()) { // When Player is in Motion
-				for (int i = 0; i < k; i++) //Balls Collision
-					player.ballBounce(balls[i], t);
+					player.move(t_time); // Motion, Friction and Border Collision
 
-				player.move(t); // Motion, Friction and Border Collision
+					if (!player.isMoving()) { // When Player Stops Moving
+						pointsGain = player.points - pointsGain; // Setting pointsGain as dummy variable
 
-				if (!player.isMoving()) { // When Player Stops Moving
-					pointsGain = player.points - pointsGain; // Setting pointsGain as dummy variable
+						if (k < n && k >= 3) k += pointsGain / 5; // Setting Amount of Balls to Add
+						else if (k > n) k = n;
+						else k = 3;
 
-					if (k < n && k >= 3) k += pointsGain / 5; // Setting Amount of Balls to Add
-					else if (k > n) k = n;
-					else k = 3;
-
-					for (int i = 0; i < k; i++) // Balls Initialization
-						balls[i].init(rand() % 4, i, balls, player.shape);
+						for (int i = 0; i < k; i++) // Balls Initialization
+							balls[i].init(rand() % 4, i, balls, player.shape);
+						break;
+					}
 				}
-			}
 
-			sprintf_s(s, "Points: %d", player.points);
-			text.setString(s);
-		}
-		else if (player.points >= FullPoints) { // Winning Condition
-			text = Text("You Won! - Congratulations!!", font, 48);
-			text.setPosition({ 600,450 });
-			text.setFillColor(Color::Green);
+				sprintf_s(s, "Points: %d", player.points);
+				text.setString(s);
+			}
+			else if (player.points >= FullPoints) { // Winning Condition
+				text = Text("You Won! - Congratulations!!", font, 48);
+				text.setPosition({ 600,450 });
+				text.setFillColor(Color::Green);
+			}
 		}
 
 		// Drawing

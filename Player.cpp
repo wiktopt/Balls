@@ -1,4 +1,5 @@
 #include "Player.h"
+#include <math.h>
 using namespace sf;
 
 void Player::borderBounce(float t) {
@@ -45,30 +46,31 @@ void Player::move(float t){
 	shape.setPosition(shape.getPosition() + Vector2f(v.x * t, v.y * t)); // Setting Player Position
 }
 
-void Player::ballBounce(Ball& ball, float t)
-{
-	const float dx = getPosition().x - ball.getPosition().x + v.x * t, dy = getPosition().y - ball.getPosition().y + v.y * t;
+void Player::ballBounce(Ball& ball, float& t){
+	float dx = getPosition().x - ball.getPosition().x + v.x * t, dy = getPosition().y - ball.getPosition().y + v.y * t;
 	const float r = ball.shape.getRadius() + shape.getRadius();
 
 	if (r * r >= dx * dx + dy * dy) {
-		float fr = 1;
 		switch (ball.type) {
 		case 0: // Red
 			points -= 5;
-			fr = 1.5;
 			break;
 		case 1: // Yellow
 			points += 5;
-			fr = 2;
 			break;
 		case 2: // Blue
 			points++;
-			fr = 0;
 			break;
 		case 3: // White
-			fr = 1;
 			break;
 		}
+
+		dx = getPosition().x - ball.getPosition().x, dy = getPosition().y - ball.getPosition().y;
+		const float c_time = -(sqrtf(r * r * (v.x * v.x + v.y * v.y) - (v.x * dy - v.y * dx) * (v.x * dy - v.y * dx)) + v.x * dx + v.y * dy) / (v.x * v.x + v.y * v.y);
+		setPosition(getPosition()+v*c_time);
+		t -= c_time;
+		dx = getPosition().x - ball.getPosition().x + v.x * c_time, dy = getPosition().y - ball.getPosition().y + v.y * c_time;
+
 		const Vector2f vp = ((v.x * dx + v.y * dy) / (dx * dx + dy * dy)) * Vector2f(dx, dy); // Vector projection on the axis of the radius
 		v -= 2.f * vp; // v after bounce
 	}
